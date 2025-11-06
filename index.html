@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQL Converter Pro | Biged 2025</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --fg: #ffffff;
+      --card-bg: #2b2b2b;
+      --border: #444;
+      --btn-bg: #3a3a3a;
+      --btn-hover: #4a4a4a;
+      --btn-danger: #d9534f;
+      --btn-danger-hover: #c9302c;
+      --input-bg: #333;
+      --font-mono: 'Consolas', 'Courier New', monospace;
+    }
+    [data-theme="light"] {
+      --bg: #f8f9fa;
+      --fg: #212529;
+      --card-bg: #ffffff;
+      --border: #dee2e6;
+      --btn-bg: #e9ecef;
+      --btn-hover: #dee2e6;
+      --btn-danger: #d9534f;
+      --input-bg: #fff;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Arial, sans-serif;
+      padding: 10px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    h2 {
+      margin: 10px 0;
+      font-size: 1.1em;
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .tab-btn {
+      padding: 8px 16px;
+      background: var(--btn-bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+    }
+    .tab-btn.active {
+      background: var(--card-bg);
+      border-bottom: none;
+    }
+    .tab-content {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0 4px 4px 4px;
+      padding: 15px;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    @media (max-width: 1000px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    textarea {
+      width: 100%;
+      height: 200px;
+      background: var(--input-bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      resize: vertical;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    button {
+      padding: 8px 12px;
+      background: var(--btn-bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: var(--btn-hover);
+    }
+    button.danger {
+      background: var(--btn-danger);
+    }
+    button.danger:hover {
+      background: var(--btn-danger-hover);
+    }
+    .history-list {
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      margin-bottom: 10px;
+    }
+    .history-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-item:hover {
+      background: var(--btn-bg);
+    }
+    .history-item.selected {
+      background: var(--btn-hover);
+    }
+    .status-bar {
+      margin-top: 15px;
+      padding: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <div class="container">
+    <h1>SQL Converter Pro | Biged 2025</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="converter">Конвертер</button>
+      <button class="tab-btn" data-tab="history">История</button>
+    </div>
+
+    <!-- Converter Tab -->
+    <div id="converter" class="tab-content active">
+      <div class="grid">
+        <div>
+          <h2>В формате строки Delphi:</h2>
+          <textarea id="delphi-input" placeholder="Вставьте Delphi-строку с SQL..."></textarea>
+        </div>
+        <div>
+          <h2>Чистый SQL:</h2>
+          <textarea id="sql-output" placeholder="Результат конвертации..."></textarea>
+        </div>
+      </div>
+
+      <h2>Введите SQL для конвертации в Delphi:</h2>
+      <textarea id="sql-input" placeholder="Вставьте чистый SQL..."></textarea>
+
+      <div class="btn-group">
+        <button onclick="delphiToSql()">Delphi → SQL</button>
+        <button onclick="sqlToDelphi()">SQL → Delphi</button>
+        <button onclick="formatSql()">Форматировать SQL</button>
+        <button onclick="clearAll()">Очистить все</button>
+        <button onclick="showAbout()" style="background:#d9514f; border-color:#c9302c;">ℹ️ О программе</button>
+      </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="history" class="tab-content">
+      <div style="display:grid; grid-template-columns: 1fr 2fr; gap:15px;">
+        <div>
+          <h2>История запросов:</h2>
+          <div class="history-list" id="history-list"></div>
+          <div class="btn-group">
+            <button onclick="copyHistory()">Копировать запрос</button>
+            <button class="danger" onclick="removeHistory()">Удалить запрос</button>
+            <button class="danger" style="margin-left:auto;" onclick="clearHistory()">Очистить историю</button>
+          </div>
+        </div>
+        <div>
+          <h2>Текст запроса:</h2>
+          <textarea id="history-query" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" id="status-bar">Готово</div>
+  </div>
+
+  <script>
+    // История
+    let history = [];
+    let selectedHistoryIndex = -1;
+
+    // Тема
+    function toggleTheme(theme) {
+      document.body.dataset.theme = theme;
+      updateStatus(`Тема изменена на ${theme === 'dark' ? 'тёмную' : 'светлую'}`);
+    }
+
+    // Переключение вкладок
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.tab).classList.add('active');
+        if (btn.dataset.tab === 'history') updateHistoryView();
+      });
+    });
+
+    // Конвертация Delphi → SQL
+    function delphiToSql() {
+      let text = document.getElementById('delphi-input').value;
+      try {
+        // Remove variable assignment (like txt := )
+        let sql = text.replace(/^[a-zA-Z_][a-zA-Z0-9_]*\s*:=\s*/gm, '');
+        
+        // Remove line continuations and concatenate strings
+        // Handle cases like: 'SELECT * ' + and 'FROM table';
+        sql = sql.replace(/\s*'\s*\+\s*'\s*/g, ' ');
+        
+        // Remove starting and ending quotes from each line
+        sql = sql.replace(/^\s*'/gm, '');
+        sql = sql.replace(/'\s*$/gm, '');
+        
+        // Remove trailing + operators at end of lines
+        sql = sql.replace(/\s*\+\s*$/gm, '');
+        
+        // Remove semicolon at the very end if it exists
+        sql = sql.replace(/;\s*$/, '');
+        
+        // Remove any remaining standalone quotes that might be left
+        sql = sql.replace(/(^|\s)'(\s|$)/g, '$1$2');
+        
+        // Clean up extra whitespace
+        sql = sql.replace(/\s+/g, ' ').trim();
+        
+        // Replace non-breaking spaces
+        sql = sql.replace(/\u00A0/g, ' ');
+        
+        // Ensure we have a proper SQL statement ending
+        if (sql && !sql.trim().endsWith(';')) {
+          sql = sql.trim() + ';';
+        }
+        
+        // Simple formatting
+        sql = formatSimpleSql(sql);
+        document.getElementById('sql-output').value = sql;
+        addToHistory(sql);
+        updateStatus('Конвертация Delphi → SQL завершена');
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      }
+    }
+
+    // Конвертация SQL → Delphi
+    function sqlToDelphi() {
+      let sql = document.getElementById('sql-input').value.trim().replace(/\u00A0/g, ' ');
+      if (!sql) return;
+      // Remove trailing semicolon if present for processing
+      if (sql.endsWith(';')) {
+        sql = sql.slice(0, -1).trim();
+      }
+      let lines = sql.split('\n').filter(l => l.trim() !== '');
+      let delphiLines = lines.map((line, i) => {
+        if (i === lines.length - 1) {
+          return `    '${line}';`;
+        } else {
+          return `    '${line} ' +`;
+        }
+      });
+      document.getElementById('delphi-input').value = delphiLines.join('\n');
+      addToHistory(sql + ';');
+      updateStatus('Конвертация SQL → Delphi завершена');
+    }
+
+    // Простое форматирование SQL (без sqlparse)
+    function formatSimpleSql(sql) {
+      // Remove any extra quotes that might have slipped through
+      sql = sql.replace(/'/g, '');
+      
+      sql = sql.replace(/\s+/g, ' ');
+      sql = sql.replace(/([(),])/g, ' $1 ');
+      sql = sql.replace(/\s+/g, ' ').trim();
+
+      const keywords = ['SELECT', 'FROM', 'WHERE', 'JOIN', 'INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN', 'GROUP BY', 'ORDER BY', 'HAVING', 'AND', 'OR', 'ON'];
+      let lines = [];
+      let current = '';
+      sql.split(' ').forEach(word => {
+        if (keywords.includes(word.toUpperCase())) {
+          if (current) lines.push(current.trim());
+          lines.push(word.toUpperCase());
+          current = '';
+        } else {
+          current += ' ' + word;
+        }
+      });
+      if (current) lines.push(current.trim());
+
+      // Разбивка по запятым
+      let resultLines = [];
+      lines.forEach(line => {
+        if (line.includes(',')) {
+          let parts = line.split(',');
+          resultLines.push(parts[0].trim());
+          for (let i = 1; i < parts.length; i++) {
+            resultLines.push('    ' + parts[i].trim() + (i === parts.length - 1 ? '' : ','));
+          }
+        } else {
+          resultLines.push(line);
+        }
+      });
+
+      let result = resultLines.join('\n');
+      return result + (sql.trim().endsWith(';') ? '' : ';');
+    }
+
+    function formatSql() {
+      let sql = document.getElementById('sql-input').value.trim();
+      if (!sql) sql = document.getElementById('sql-output').value.trim();
+      if (!sql) {
+        updateStatus('Нет SQL для форматирования');
+        return;
+      }
+      sql = sql.replace(/'/g, '').replace(/\u00A0/g, ' ').trim();
+      let formatted = formatSimpleSql(sql);
+      document.getElementById('sql-output').value = formatted;
+      updateStatus('SQL успешно отформатирован');
+    }
+
+    function clearAll() {
+      document.getElementById('delphi-input').value = '';
+      document.getElementById('sql-input').value = '';
+      document.getElementById('sql-output').value = '';
+      updateStatus('Все поля очищены');
+    }
+
+    function addToHistory(query) {
+      if (!query) return;
+      // Check if query already exists in history
+      for (let item of history) {
+        if (item.query === query) return;
+      }
+      history.push({
+        date: new Date().toLocaleString('ru-RU'),
+        query: query
+      });
+      if (history.length > 100) history = history.slice(-100);
+    }
+
+    function updateHistoryView() {
+      const list = document.getElementById('history-list');
+      list.innerHTML = '';
+      history.slice().reverse().forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.textContent = item.date;
+        div.onclick = () => {
+          document.querySelectorAll('.history-item').forEach(el => el.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedHistoryIndex = history.length - 1 - i;
+          document.getElementById('history-query').value = item.query;
+        };
+        list.appendChild(div);
+      });
+    }
+
+    function copyHistory() {
+      const query = document.getElementById('history-query').value;
+      if (query) {
+        // Fallback for browsers that don't support clipboard API
+        const textarea = document.createElement('textarea');
+        textarea.value = query;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        updateStatus('Запрос скопирован в буфер');
+      } else {
+        alert('Нет запроса для копирования');
+      }
+    }
+
+    function removeHistory() {
+      if (selectedHistoryIndex >= 0) {
+        history.splice(selectedHistoryIndex, 1);
+        updateHistoryView();
+        document.getElementById('history-query').value = '';
+        selectedHistoryIndex = -1;
+        updateStatus('Запрос удалён из истории');
+      } else {
+        alert('Выберите запрос для удаления');
+      }
+    }
+
+    function clearHistory() {
+      if (confirm('Очистить всю историю запросов?')) {
+        history = [];
+        updateHistoryView();
+        document.getElementById('history-query').value = '';
+        selectedHistoryIndex = -1;
+        updateStatus('История очищена');
+      }
+    }
+
+    function updateStatus(msg) {
+      document.getElementById('status-bar').textContent = msg;
+    }
+
+    function showAbout() {
+      alert(`SQL Converter Pro for Delphi
+Version: 0.1 (Web)
+Author: Ed Shaulis aka Biged 2025
+License: MIT License`);
+    }
+
+    // Инициализация темы
+    const savedTheme = 'dark';
+    document.body.dataset.theme = savedTheme;
+
+    // Кнопки меню (тема)
+    document.querySelector('h1').addEventListener('click', () => {
+      toggleTheme(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+    });
+
+    // Загрузка истории при старте
+    updateHistoryView();
+  </script>
+</body>
+</html>
+
